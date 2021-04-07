@@ -1,1 +1,1 @@
-# spotify-playlist-success
+# playlist-success
