@@ -101,7 +101,10 @@ if __name__ == "__main__":
     track_frame = pd.read_parquet(
         "../data/playlist_track_ids/playlist_track_ids_part_35000.parquet"
     ).reset_index(drop=True)
-    track_chunks = split_dataframe(track_frame, chunk_size=100)
+
+    track_deduped = track_frame.drop_duplicates(subset='track_id').reset_index(drop=True)
+
+    track_chunks = split_dataframe(track_deduped, chunk_size=100)
 
     all_features = []
     for i in tqdm(range(len(track_chunks))):
@@ -115,8 +118,8 @@ if __name__ == "__main__":
 
                 features_frame = (
                     features_extract(f)
-                    .assign(user_id=track_chunks[i]["user_id"])
-                    .assign(playlist_id=track_chunks[i]["playlist_id"])
+#                     .assign(user_id=track_chunks[i]["user_id"])
+#                     .assign(playlist_id=track_chunks[i]["playlist_id"])
                 )
                 all_features.append(features_frame)
                 success = True
