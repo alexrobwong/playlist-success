@@ -98,13 +98,36 @@ def features_extract(features):
 
 
 if __name__ == "__main__":
-    track_frame = pd.read_parquet(
-        "../data/playlist_track_ids/playlist_track_ids_part_35000.parquet"
-    ).reset_index(drop=True)
+    all_tracks_frame = pd.read_parquet(
+        "/Users/alexander_wong/Documents/playlist-success/data/playlist_track_ids/playlist_track_ids_all.parquet"
+    )
+    all_tracks = list(all_tracks_frame["track_id"].unique())
 
-    track_deduped = track_frame.drop_duplicates(subset='track_id').reset_index(drop=True)
+    features_
 
-    track_chunks = split_dataframe(track_deduped, chunk_size=100)
+    compelted = set(
+        list(
+            list(tracks_completed_part_1["track_id"])
+            + list(tracks_completed_part_2["track_id"])
+        )
+    )
+
+    tracks_not_completed = pd.read_parquet(
+        "/Users/alexander_wong/Documents/playlist-success/data/playlist_track_ids/playlist_track_ids_part_35000.parquet"
+    )
+
+    not_completed = (
+        all_tracks.loc[lambda f: ~f["track_id"].isin(compelted)]
+        .drop_duplicates(subset="track_id")
+        .reset_index(drop=True)
+    )
+
+    track_chunks = split_dataframe(not_completed, chunk_size=100)
+
+    logging.info(len(tracks_completed))
+    logging.info(len(all_tracks))
+    logging.info(len(compelted))
+    logging.info(len(not_completed))
 
     all_features = []
     for i in tqdm(range(len(track_chunks))):
@@ -118,8 +141,8 @@ if __name__ == "__main__":
 
                 features_frame = (
                     features_extract(f)
-#                     .assign(user_id=track_chunks[i]["user_id"])
-#                     .assign(playlist_id=track_chunks[i]["playlist_id"])
+                    #                     .assign(user_id=track_chunks[i]["user_id"])
+                    #                     .assign(playlist_id=track_chunks[i]["playlist_id"])
                 )
                 all_features.append(features_frame)
                 success = True
@@ -135,11 +158,12 @@ if __name__ == "__main__":
 
         # Checkpoint every 100 chunks of songs
         if i != 0 and i % 100 == 0:
+            name = i + 24800
             checkpoint = pd.concat(all_features)
             checkpoint.to_parquet(
-                f"../data/track_features/track_features_part_{i}.parquet"
+                f"../data/track_features/track_features_part_{name}.parquet"
             )
-            logging.info(f"checkpoint save for part {i} success")
+            logging.info(f"checkpoint save for part {name} success")
 
     # Final frame to be saved
     final = pd.concat(all_features)
