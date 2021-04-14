@@ -77,10 +77,7 @@ KURTOSIS_FEATURES = [
     "valence_kurt_unbiased",
 ]
 MODEL_NUMERICAL_FEATURES = (
-    BASE_FEATURES
-    + PERCENTILE_FEATURES
-    + MEAN_FEATURES
-    + STD_FEATURES
+    BASE_FEATURES + PERCENTILE_FEATURES + MEAN_FEATURES + STD_FEATURES
 )
 MODEL_CATEGORICAL_FEATURES = [
     "genre_1",
@@ -88,5 +85,33 @@ MODEL_CATEGORICAL_FEATURES = [
     "genre_3",
     "mood_1",
     "mood_2",
-    "mood_3"
+    "mood_3",
+]
+GENRES = [
+    "Alternative",
+    "Blues",
+    "Children's",
+    "Classical",
+    "Country & Folk",
+    "Dance & House",
+    "Easy Listening",
+    "Electronica",
+    "Holiday",
+    "Indie Rock",
+    "Jazz",
+    "Latin",
+    "Metal",
+    "New Age",
+    "Other",
+    "Pop",
+    "Punk",
+    "R&B",
+    "Rap",
+    "Reggae",
+    "Religious",
+    "Rock",
+    "Soundtrack",
+    "Spoken & Audio",
+    "Traditional",
+    "-",
 ]

@@ -113,21 +113,18 @@ def classify_success(feature_frame, users_threshold=10, success_threshold=0.75):
         str(col) + "_thresh" for col in threshold_frame_plays.columns
     ]
 
-    success_frame = (
-        target_frame.merge(
-            threshold_frame_plays.reset_index()[
-                [
-                    "genre_1",
-                    "streaming_ratio_users_thresh",
-                ]
-            ],
-            on="genre_1",
-            how="left",
-        )
-        .assign(
-            success_streaming_ratio_users=lambda f: np.where(
-                f["streaming_ratio_users"] >= f["streaming_ratio_users_thresh"], 1, 0
-            )
+    success_frame = target_frame.merge(
+        threshold_frame_plays.reset_index()[
+            [
+                "genre_1",
+                "streaming_ratio_users_thresh",
+            ]
+        ],
+        on="genre_1",
+        how="left",
+    ).assign(
+        success_streaming_ratio_users=lambda f: np.where(
+            f["streaming_ratio_users"] >= f["streaming_ratio_users_thresh"], 1, 0
         )
     )
     return success_frame
