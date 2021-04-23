@@ -1,5 +1,5 @@
-numpy==1.19.3
-shap
+numpy==1.18.1
+shap==0.39.0
 streamlit
 pycaret
 xlsxwriter
