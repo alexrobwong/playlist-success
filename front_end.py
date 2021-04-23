@@ -88,6 +88,10 @@ def main():
     )
     include_models = [model_map[x] for x in list(model_selection)]
 
+    # Application can only be run start to finish if xgboost is selected...add it to the list of options
+    if "xgboost" not in include_models:
+        include_models.append("xgboost")
+
     optionals = st.sidebar.beta_expander(
         "Additional Feature Engineering Parameters", False
     )
