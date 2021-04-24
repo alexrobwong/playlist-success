@@ -41,11 +41,16 @@ def main():
     state = get_state()
     st.title("What Makes a Playlist Successful?")
     st.write(
-        "This webtool trains & evaluates playlist success classification models, "
-        "and generates intuitive visualizations for analyzing feature importance (Creator: Alexander Wong)"
+        "**This application trains & evaluates playlist success classification models, "
+        "and generates SHAP visualizations for analyzing feature importance**"
     )
-    youtube_link = "[Link to recorded demo on Youtube](https://youtu.be/dPsGxb9lTUY)"
-    st.markdown(youtube_link, unsafe_allow_html=True)
+    st.write(
+        "[Created By: Alexander Wong](https://www.linkedin.com/in/alexrobwong/)",
+        unsafe_allow_html=True,
+    )
+
+    if st.checkbox("Click to watch recorded demo"):
+        st.video("https://www.youtube.com/watch?v=dPsGxb9lTUY")
 
     # Sidebar Inputs -------------------------------------------------------------------------------------------------
     experiment_name_input = st.sidebar.text_input("Experiment name:")
@@ -83,15 +88,9 @@ def main():
         "Light Gradient Boosting Machine": "lightgbm",
         "Random Forest Classifier": "rf",
     }
-    model_selection = st.sidebar.multiselect(
-        "Models to train:", options=list(model_map.keys())
+    model_selection = list(
+        st.sidebar.multiselect("Models to train:", options=list(model_map.keys()))
     )
-    include_models = [model_map[x] for x in list(model_selection)]
-
-    # Application can only be run start to finish if xgboost is selected...add it to the list of options
-    if "xgboost" not in include_models:
-        include_models.append("xgboost")
-
     optionals = st.sidebar.beta_expander(
         "Additional Feature Engineering Parameters", False
     )
@@ -118,6 +117,20 @@ def main():
     train = st.checkbox("Click to train models")
     if train:
 
+        # Application can only be run start to finish if xgboost is selected...add it to the list of options
+        exb_added = False
+        if "Extreme Gradient Boosting" not in model_selection:
+            model_selection.append("Extreme Gradient Boosting")
+            exb_added = True
+
+        # Bugfix - must select at least two models to train other wise model object is used instead of index
+        lgb_added = False
+        if "Light Gradient Boosting Machine" not in model_selection:
+            model_selection.append("Light Gradient Boosting Machine")
+            lgb_added = True
+
+        include_models = [model_map[x] for x in list(model_selection)]
+
         # Check that models are selected - if none are selected, all models will be trained (undesired app behavior)
         if len(include_models) == 0 or include_models is None:
             raise Exception("No models were selected. Please re-start the application")
@@ -134,39 +147,48 @@ def main():
 
         # PyCaret setup to train models
         if not state.experiment_complete:
-            setup(
-                data=train_frame,
-                numeric_features=MODEL_NUMERICAL_FEATURES,
-                categorical_features=MODEL_CATEGORICAL_FEATURES,
-                target="success_streaming_ratio_users",
-                ignore_features=["playlist_uri"],
-                test_data=holdout_frame,
-                session_id=123,
-                ignore_low_variance=True,
-                remove_outliers=True,
-                fix_imbalance=True,
-                remove_multicollinearity=True,
-                log_experiment=True,
-                log_data=True,
-                fold=2,
-                n_jobs=-1,
-                combine_rare_levels=True,
-                experiment_name=experiment_name,
-                silent=True,
-                feature_interaction=interactions,
-                feature_ratio=ratios,
-                polynomial_features=polynomials,
-            )
-            state.list_models = compare_models(
-                n_select=5, round=3, cross_validation=False, include=include_models
-            )
-            state.experiment_complete = True
+            with st.spinner("Model Training in Progress"):
+                if exb_added:
+                    st.success(
+                        "**Extreme Gradient Boosting Model** automatically added by default into model pipeline"
+                    )
+                if lgb_added:
+                    st.success(
+                        "**Light Gradient Boosting Machine Model** automatically added by default into model pipeline"
+                    )
+                setup(
+                    data=train_frame,
+                    numeric_features=MODEL_NUMERICAL_FEATURES,
+                    categorical_features=MODEL_CATEGORICAL_FEATURES,
+                    target="success_streaming_ratio_users",
+                    ignore_features=["playlist_uri"],
+                    test_data=holdout_frame,
+                    session_id=123,
+                    ignore_low_variance=True,
+                    remove_outliers=True,
+                    fix_imbalance=True,
+                    remove_multicollinearity=True,
+                    log_experiment=True,
+                    log_data=True,
+                    fold=2,
+                    n_jobs=-1,
+                    combine_rare_levels=True,
+                    experiment_name=experiment_name,
+                    silent=True,
+                    feature_interaction=interactions,
+                    feature_ratio=ratios,
+                    polynomial_features=polynomials,
+                )
+                state.list_models = compare_models(
+                    n_select=5, round=3, cross_validation=False, include=include_models
+                )
+                state.experiment_complete = True
 
-            state.X_train = get_config(variable="X_train")
-            state.y_train = get_config(variable="y_train")
-            state.view = pd.merge(
-                state.y_train, state.X_train, left_index=True, right_index=True
-            ).reset_index(drop=True)
+                state.X_train = get_config(variable="X_train")
+                state.y_train = get_config(variable="y_train")
+                state.view = pd.merge(
+                    state.y_train, state.X_train, left_index=True, right_index=True
+                ).reset_index(drop=True)
 
         # Display model training results
         st.header("Model Training & Testing Results")
